@@ -22,9 +22,7 @@
 
   const CACHE_KEY = "cf_lite_pp";
   const CACHE_TTL = 30000;
-
   const POS_KEY = "cf_detector_pos_v5";
-
   const PANEL_GAP = 12;
 
   const IS_MOBILE =
@@ -806,12 +804,11 @@
             </div>
 
             <div class="cf-row">
-              IP：
               <span
                 class="cf-ip"
                 id="cf-copy-ip"
               >
-                ${d.ip}
+                IP： ${d.ip}
               </span>
             </div>
           `;
@@ -853,12 +850,10 @@
 
           if (!ok) return;
 
-          const old = ipEl.innerText;
-
-          ipEl.innerHTML = '<span class="cf-copy-ok">已复制 ✓</span>';
+          ipEl.innerHTML = '<span class="cf-copy-ok">IP： 已复制 ✓</span>';
 
           setTimeout(() => {
-            ipEl.innerText = old;
+            ipEl.innerText = `IP： ${d.ip}`;
           }, 1200);
         });
       }
