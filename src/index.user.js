@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Cloudflare Detector Pro
 // @namespace    https://github.com/coderyjf/CloudflareDetector
-// @version      1.2
-// @description  Cloudflare 节点检测（IP / Colo / 状态 / 可拖拽 / 复制）
+// @version      1.3
+// @description  Cloudflare 节点检测（PC + 移动端优化 / IP / Colo / 状态 / 可拖拽 / 长按拖动 / 复制）
 // @author       coderyjf
 // @match        *://*/*
 // @grant        GM_xmlhttpRequest
@@ -23,10 +23,17 @@
   const CACHE_KEY = "cf_lite_pp";
   const CACHE_TTL = 30000;
 
-  const POS_KEY = "cf_detector_pos_v4";
+  const POS_KEY = "cf_detector_pos_v5";
 
-  const ICON_SIZE = 52;
   const PANEL_GAP = 12;
+
+  const IS_MOBILE =
+    /Android|iPhone|iPad|iPod|HarmonyOS|Mobile/i.test(navigator.userAgent) ||
+    window.innerWidth <= 768;
+
+  const ICON_SIZE = IS_MOBILE ? 56 : 52;
+
+  const LONG_PRESS_TIME = 220;
 
   /* =========================
            🌍 COLO MAP
@@ -86,7 +93,7 @@
     #cfpp{
       position:fixed;
       left:18px;
-      bottom:130px;
+      bottom:${IS_MOBILE ? 92 : 130}px;
 
       width:${ICON_SIZE}px;
       height:${ICON_SIZE}px;
@@ -108,6 +115,7 @@
 
       cursor:grab;
       user-select:none;
+      -webkit-user-select:none;
 
       box-shadow:
         0 8px 22px rgba(0,0,0,.28);
@@ -118,6 +126,9 @@
         opacity .18s ease;
 
       animation:cfpop .42s ease;
+
+      touch-action:none;
+      -webkit-tap-highlight-color: transparent;
     }
 
     #cfpp:hover{
@@ -130,11 +141,14 @@
     #cfpp.dragging{
       cursor:grabbing;
       transition:none;
+      opacity:.92;
+      transform:scale(1.06);
     }
 
     #cfpp svg{
-      width:22px;
-      height:22px;
+      width:${IS_MOBILE ? 24 : 22}px;
+      height:${IS_MOBILE ? 24 : 22}px;
+
       fill:#fff;
       pointer-events:none;
     }
@@ -144,15 +158,15 @@
 
       display:none;
 
-      min-width:210px;
-      max-width:min(340px,calc(100vw - 24px));
+      min-width:${IS_MOBILE ? 230 : 210}px;
+      max-width:min(${IS_MOBILE ? 92 : 340}px,calc(100vw - 16px));
 
-      padding:14px 15px;
+      padding:${IS_MOBILE ? 16 : 14}px ${IS_MOBILE ? 16 : 15}px;
 
-      border-radius:16px;
+      border-radius:${IS_MOBILE ? 18 : 16}px;
 
       background:
-        rgba(255,255,255,.82);
+        rgba(255,255,255,.84);
 
       backdrop-filter:blur(18px);
       -webkit-backdrop-filter:blur(18px);
@@ -163,8 +177,8 @@
       box-shadow:
         0 12px 38px rgba(0,0,0,.22);
 
-      font-size:13px;
-      line-height:1.7;
+      font-size:${IS_MOBILE ? 14 : 13}px;
+      line-height:1.75;
 
       font-family:
         Inter,
@@ -179,6 +193,7 @@
       z-index:999998;
 
       user-select:none;
+      -webkit-user-select:none;
 
       overflow-wrap:break-word;
       word-break:break-word;
@@ -191,6 +206,8 @@
       transition:
         opacity .18s ease,
         transform .18s ease;
+
+      -webkit-tap-highlight-color: transparent;
     }
 
     #cfpanel.show{
@@ -202,16 +219,18 @@
     .cf-title{
       display:flex;
       align-items:center;
+      justify-content:center;
       gap:7px;
 
-      margin-bottom:10px;
+      margin-bottom:12px;
 
       color:#f38020;
 
       font-weight:700;
-      font-size:14px;
+      font-size:${IS_MOBILE ? 15 : 14}px;
 
       white-space:nowrap;
+      text-align:center;
     }
 
     .cf-row{
@@ -220,7 +239,7 @@
       justify-content:center;
       gap:4px;
 
-      margin:5px 0;
+      margin:7px 0;
 
       flex-wrap:wrap;
 
@@ -245,9 +264,9 @@
     .cf-ip{
       cursor:pointer;
 
-      padding:4px 9px;
+      padding:${IS_MOBILE ? "7px 12px" : "4px 9px"};
 
-      border-radius:9px;
+      border-radius:10px;
 
       background:
         rgba(0,0,0,.06);
@@ -257,6 +276,11 @@
         transform .16s ease;
 
       display:inline-block;
+
+      min-height:${IS_MOBILE ? "36px" : "auto"};
+      line-height:${IS_MOBILE ? "22px" : "normal"};
+
+      touch-action:manipulation;
     }
 
     .cf-ip:hover{
@@ -293,6 +317,15 @@
 
       animation:
         cfspin .75s linear infinite;
+    }
+
+    .cf-tip{
+      margin-top:10px;
+
+      font-size:${IS_MOBILE ? 12.5 : 12}px;
+      opacity:.62;
+
+      text-align:center;
     }
 
     @keyframes cfspin{
@@ -355,16 +388,61 @@
       await navigator.clipboard.writeText(text);
       return true;
     } catch {
-      return false;
+      try {
+        const input = document.createElement("textarea");
+
+        input.value = text;
+
+        document.body.appendChild(input);
+
+        input.select();
+
+        document.execCommand("copy");
+
+        input.remove();
+
+        return true;
+      } catch {
+        return false;
+      }
     }
   }
 
-  function fetchTrace() {
+  async function fetchTrace() {
+    const timeout = 3000;
+    const url = location.origin + "/cdn-cgi/trace";
+
+    if (IS_MOBILE) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => {
+        controller.abort();
+      }, timeout);
+      try {
+        const r = await fetch(url, {
+          method: "GET",
+          cache: "no-store",
+          signal: controller.signal,
+        });
+
+        if (!r.ok) {
+          return "";
+        }
+        return await r.text();
+      } catch {
+        return "";
+      } finally {
+        clearTimeout(timer);
+      }
+    }
     return new Promise((resolve) => {
       GM_xmlhttpRequest({
         method: "GET",
-        url: location.origin + "/cdn-cgi/trace",
-        timeout: 5000,
+        url,
+        timeout,
+
+        headers: {
+          "cache-control": "no-cache",
+        },
 
         onload: (r) => resolve(r.responseText || ""),
         ontimeout: () => resolve(""),
@@ -464,12 +542,11 @@
 
       const panelRect = panel.getBoundingClientRect();
 
-      const centerX = iconRect.left + iconRect.width / 2;
-
-      const centerY = iconRect.top + iconRect.height / 2;
-
       const winW = window.innerWidth;
       const winH = window.innerHeight;
+
+      const centerX = iconRect.left + iconRect.width / 2;
+      const centerY = iconRect.top + iconRect.height / 2;
 
       const isLeft = centerX < winW / 2;
       const isTop = centerY < winH / 2;
@@ -477,16 +554,29 @@
       let panelX;
       let panelY;
 
-      if (isLeft) {
-        panelX = iconRect.left + ICON_SIZE + PANEL_GAP;
-      } else {
-        panelX = iconRect.left - panelRect.width - PANEL_GAP;
-      }
+      if (IS_MOBILE) {
+        panelX = Math.max(
+          8,
+          Math.min(centerX - panelRect.width / 2, winW - panelRect.width - 8),
+        );
 
-      if (isTop) {
-        panelY = iconRect.top;
+        if (isTop) {
+          panelY = iconRect.bottom + PANEL_GAP;
+        } else {
+          panelY = iconRect.top - panelRect.height - PANEL_GAP;
+        }
       } else {
-        panelY = iconRect.top + ICON_SIZE - panelRect.height;
+        if (isLeft) {
+          panelX = iconRect.left + ICON_SIZE + PANEL_GAP;
+        } else {
+          panelX = iconRect.left - panelRect.width - PANEL_GAP;
+        }
+
+        if (isTop) {
+          panelY = iconRect.top;
+        } else {
+          panelY = iconRect.top + ICON_SIZE - panelRect.height;
+        }
       }
 
       panelX = Math.max(8, Math.min(panelX, winW - panelRect.width - 8));
@@ -511,7 +601,7 @@
     } catch {}
 
     let currentX = 18;
-    let currentY = window.innerHeight - 182;
+    let currentY = window.innerHeight - 180;
 
     if (saved) {
       currentX = saved.x;
@@ -520,7 +610,6 @@
 
     function updateIconPosition(x, y) {
       const maxX = window.innerWidth - ICON_SIZE;
-
       const maxY = window.innerHeight - ICON_SIZE;
 
       x = Math.max(0, Math.min(x, maxX));
@@ -546,33 +635,89 @@
     let offsetX = 0;
     let offsetY = 0;
 
-    function startDrag(e) {
+    let longPressTimer = null;
+
+    function start(x, y) {
       dragging = true;
       moved = false;
 
       icon.classList.add("dragging");
 
-      offsetX = e.clientX - currentX;
-      offsetY = e.clientY - currentY;
-
-      e.preventDefault();
+      offsetX = x - currentX;
+      offsetY = y - currentY;
     }
 
-    icon.addEventListener("mousedown", startDrag);
-
-    document.addEventListener("mousemove", (e) => {
+    function move(x, y) {
       if (!dragging) return;
 
       moved = true;
 
-      updateIconPosition(e.clientX - offsetX, e.clientY - offsetY);
-    });
+      updateIconPosition(x - offsetX, y - offsetY);
+    }
 
-    document.addEventListener("mouseup", () => {
+    function end() {
       dragging = false;
 
       icon.classList.remove("dragging");
+
+      clearTimeout(longPressTimer);
+    }
+
+    /* =========================
+                 PC
+    ========================= */
+
+    icon.addEventListener("mousedown", (e) => {
+      start(e.clientX, e.clientY);
+
+      e.preventDefault();
     });
+
+    document.addEventListener("mousemove", (e) => {
+      move(e.clientX, e.clientY);
+    });
+
+    document.addEventListener("mouseup", end);
+
+    /* =========================
+               MOBILE
+    ========================= */
+
+    icon.addEventListener(
+      "touchstart",
+      (e) => {
+        const touch = e.touches[0];
+
+        moved = false;
+
+        longPressTimer = setTimeout(() => {
+          start(touch.clientX, touch.clientY);
+        }, LONG_PRESS_TIME);
+      },
+      { passive: true },
+    );
+
+    document.addEventListener(
+      "touchmove",
+      (e) => {
+        const touch = e.touches[0];
+
+        if (!dragging) {
+          if (longPressTimer) {
+            clearTimeout(longPressTimer);
+          }
+
+          return;
+        }
+
+        move(touch.clientX, touch.clientY);
+
+        e.preventDefault();
+      },
+      { passive: false },
+    );
+
+    document.addEventListener("touchend", end);
 
     window.addEventListener("resize", () => {
       updateIconPosition(currentX, currentY);
@@ -606,9 +751,7 @@
     let opened = false;
     let loading = false;
 
-    icon.addEventListener("click", async () => {
-      if (hasMoved()) return;
-
+    async function togglePanel() {
       if (loading) return;
 
       opened = !opened;
@@ -632,16 +775,16 @@
       });
 
       panel.innerHTML = `
-          <div class="cf-title">
-            ⏳ Cloudflare Detector
-          </div>
+        <div class="cf-title">
+          ⏳ Cloudflare Detector
+        </div>
 
-          <div class="cf-row">
-            <span class="cf-loading cf-warn">
-              正在检测节点
-            </span>
-          </div>
-        `;
+        <div class="cf-row">
+          <span class="cf-loading cf-warn">
+            正在检测节点
+          </span>
+        </div>
+      `;
 
       updatePanelPosition(icon, panel);
 
@@ -658,43 +801,47 @@
       if (d.cf) {
         if (d.trace) {
           info = `
-              <div class="cf-row">
-                节点： ${d.colo}
-              </div>
+            <div class="cf-row">
+              节点： ${d.colo}
+            </div>
 
-              <div class="cf-row">
-                IP：
-                <span
-                  class="cf-ip"
-                  id="cf-copy-ip"
-                >
-                  ${d.ip}
-                </span>
-              </div>
-            `;
+            <div class="cf-row">
+              IP：
+              <span
+                class="cf-ip"
+                id="cf-copy-ip"
+              >
+                ${d.ip}
+              </span>
+            </div>
+          `;
         } else {
           info = `
-              <div class="cf-row">
-                Trace 被禁用
-              </div>
-            `;
+            <div class="cf-row">
+              Trace 被禁用
+            </div>
+          `;
         }
       }
 
       panel.innerHTML = `
-          <div class="cf-title">
-            ${st.dot} Cloudflare Detector
-          </div>
+        <div class="cf-title">
+          ${st.dot} Cloudflare Detector
+        </div>
 
-          <div class="cf-row">
-            状态：
-            <span class="${st.color}">
-              ${st.text}
-            </span>
-          </div>
+        <div class="cf-row">
+          状态：
+          <span class="${st.color}">
+            ${st.text}
+          </span>
+        </div>
 
-          ${info}
-        `;
+        ${info}
+
+        <div class="cf-tip">
+          ${IS_MOBILE ? "点击打开 · 长按拖动" : "点击打开 · 拖动移动"}
+        </div>
+      `;
 
       updatePanelPosition(icon, panel);
 
@@ -714,6 +861,26 @@
             ipEl.innerText = old;
           }, 1200);
         });
+      }
+    }
+
+    icon.addEventListener("click", () => {
+      if (hasMoved()) return;
+
+      togglePanel();
+    });
+
+    document.addEventListener("click", (e) => {
+      if (opened && !panel.contains(e.target) && !icon.contains(e.target)) {
+        opened = false;
+
+        panel.classList.remove("show");
+
+        setTimeout(() => {
+          if (!opened) {
+            panel.style.display = "none";
+          }
+        }, 180);
       }
     });
   }
