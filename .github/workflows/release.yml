@@ -1,0 +1,49 @@
+name: Release Userscript
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "src/index.user.js"
+      - ".github/workflows/release.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      SCRIPT_SRC: "src/index.user.js"
+      SCRIPT_NAME: "cloudflare-detector.user.js"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: mkdir -p dist
+
+      - name: Copy & rename userscript
+        run: cp ${{ env.SCRIPT_SRC }} dist/${{ env.SCRIPT_NAME }}
+
+      - name: Get version from userscript
+        id: version
+        run: |
+          VERSION=$(grep '@version' ${{ env.SCRIPT_SRC }} | awk '{print $3}')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: Cloudflare Detector v${{ steps.version.outputs.version }}
+          files: dist/${{ env.SCRIPT_NAME }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Output userscript URL
+        run: |
+          echo "Userscript URL:"
+          echo "https://github.com/${{ github.repository }}/releases/latest/download/${{ env.SCRIPT_NAME }}"
