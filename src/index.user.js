@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Cloudflare Detector Pro
 // @namespace    https://github.com/coderyjf/CloudflareDetector
-// @version      1.3
+// @version      1.4
 // @description  Cloudflare 节点检测（PC + 移动端优化 / IP / Colo / 状态 / 可拖拽 / 长按拖动 / 复制）
 // @author       coderyjf
 // @match        *://*/*
@@ -262,31 +262,21 @@
     .cf-ip{
       cursor:pointer;
 
-      padding:${IS_MOBILE ? "7px 12px" : "4px 9px"};
+      display:inline;
+      padding:0;
+      margin:0;
 
-      border-radius:10px;
+      background:none;
+      border:none;
+      border-radius:0;
 
-      background:
-        rgba(0,0,0,.06);
-
-      transition:
-        background .16s ease,
-        transform .16s ease;
-
-      display:inline-block;
-
-      min-height:${IS_MOBILE ? "36px" : "auto"};
-      line-height:${IS_MOBILE ? "22px" : "normal"};
-
-      touch-action:manipulation;
+      transition: font-weight .12s ease;
+      user-select: none;
+      -webkit-user-select: none;
     }
 
     .cf-ip:hover{
-      background:
-        rgba(0,0,0,.11);
-
-      transform:
-        translateY(-1px);
+      font-weight:600;
     }
 
     .cf-copy-ok{
