@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Cloudflare Detector
 // @namespace    https://github.com/coderyjf/CloudflareDetector
-// @version      1.4.1
+// @version      1.4.2
 // @description  Cloudflare 节点检测（PC + 移动端优化 / IP / Colo / 状态 / 可拖拽 / 长按拖动 / 复制）
 // @author       coderyjf
 // @match        *://*/*
@@ -19,7 +19,7 @@
   "use strict";
 
   /* =========================
-           ⚙️ CONFIG
+           ⚙️ 配置
   ========================= */
 
   const CACHE_KEY = "cf_lite_pp";
@@ -31,12 +31,12 @@
     /Android|iPhone|iPad|iPod|HarmonyOS|Mobile/i.test(navigator.userAgent) ||
     window.innerWidth <= 768;
 
-  const ICON_SIZE = IS_MOBILE ? 56 : 52;
+  const ICON_SIZE = IS_MOBILE ? 42 : 40;
 
   const LONG_PRESS_TIME = 220;
 
   /* =========================
-           🌍 COLO MAP
+           🌍 地区表
   ========================= */
 
   const coloMap = {
@@ -86,7 +86,7 @@
   };
 
   /* =========================
-           🎨 STYLE
+           🎨 UI风格
   ========================= */
 
   GM_addStyle(`
@@ -329,7 +329,7 @@
   `);
 
   /* =========================
-            HELPERS
+            辅助函数
   ========================= */
 
   function el(tag) {
@@ -433,7 +433,7 @@
   }
 
   /* =========================
-             DETECT
+             嗅探
   ========================= */
 
   async function detect() {
@@ -486,7 +486,7 @@
   }
 
   /* =========================
-             STATUS
+             状态
   ========================= */
 
   function getStatus(d) {
@@ -514,7 +514,7 @@
   }
 
   /* =========================
-          PANEL POSITION
+            面板位置
   ========================= */
 
   function updatePanelPosition(icon, panel) {
@@ -571,7 +571,7 @@
   }
 
   /* =========================
-             DRAG
+             拖拽
   ========================= */
 
   function enableDrag(panel, icon) {
@@ -645,7 +645,7 @@
     }
 
     /* =========================
-                 PC
+               电脑端
     ========================= */
 
     icon.addEventListener("mousedown", (e) => {
@@ -661,7 +661,7 @@
     document.addEventListener("mouseup", end);
 
     /* =========================
-               MOBILE
+               移动端
     ========================= */
 
     icon.addEventListener(
@@ -708,7 +708,7 @@
   }
 
   /* =========================
-              INIT
+            初始化
   ========================= */
 
   function init() {
