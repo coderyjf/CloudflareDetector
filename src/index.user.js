@@ -1,13 +1,15 @@
 // ==UserScript==
-// @name         Cloudflare Detector Pro
+// @name         Cloudflare Detector
 // @namespace    https://github.com/coderyjf/CloudflareDetector
-// @version      1.4
+// @version      1.4.1
 // @description  Cloudflare 节点检测（PC + 移动端优化 / IP / Colo / 状态 / 可拖拽 / 长按拖动 / 复制）
 // @author       coderyjf
 // @match        *://*/*
 // @grant        GM_xmlhttpRequest
 // @grant        GM_addStyle
 // @connect      *
+// @run-at       document-idle
+// @icon         https://www.google.com/s2/favicons?sz=64&domain=cloudflare.com
 // @license      MIT
 // @downloadURL  https://github.com/coderyjf/CloudflareDetector/releases/latest/download/cloudflare-detector.user.js
 // @updateURL    https://github.com/coderyjf/CloudflareDetector/releases/latest/download/cloudflare-detector.user.js
@@ -305,15 +307,6 @@
 
       animation:
         cfspin .75s linear infinite;
-    }
-
-    .cf-tip{
-      margin-top:10px;
-
-      font-size:${IS_MOBILE ? 12.5 : 12}px;
-      opacity:.62;
-
-      text-align:center;
     }
 
     @keyframes cfspin{
@@ -824,10 +817,6 @@
         </div>
 
         ${info}
-
-        <div class="cf-tip">
-          ${IS_MOBILE ? "点击打开 · 长按拖动" : "点击打开 · 拖动移动"}
-        </div>
       `;
 
       updatePanelPosition(icon, panel);
