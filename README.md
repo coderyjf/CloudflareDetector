@@ -50,7 +50,7 @@
 
 ### GreasyFork
 
-https://greasyfork.org/
+[Cloudflare Detector](https://greasyfork.org/zh-CN/scripts/577119-cloudflare-detector)
 
 ---
 
