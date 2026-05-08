@@ -44,9 +44,7 @@
 
 ### Tampermonkey（推荐）
 1. 安装 Tampermonkey
-2. 新建脚本
-3. 粘贴 userscript
-4. 保存启用
+2. [脚本安装](https://github.com/coderyjf/CloudflareDetector/releases/latest/download/cloudflare-detector.user.js)
 
 ---
 
