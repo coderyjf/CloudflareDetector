@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Cloudflare Detector
 // @namespace    https://github.com/coderyjf/CloudflareDetector
-// @version      1.4.3
+// @version      1.4.4
 // @description  Cloudflare 节点检测（PC + 移动端优化 / IP / Colo / 状态 / 可拖拽 / 长按拖动 / 复制）
 // @author       coderyjf
 // @match        *://*/*
@@ -834,11 +834,13 @@
       -webkit-tap-highlight-color: transparent;
     }
 
-    #cfpp:hover{
-      transform:scale(1.08);
-      opacity: 1;
-      box-shadow:
-        0 14px 30px rgba(0,0,0,.32);
+    @media (hover: hover) {
+      #cfpp:hover{
+        transform:scale(1.08);
+        opacity: 1;
+        box-shadow:
+          0 14px 30px rgba(0,0,0,.32);
+      }
     }
 
     #cfpp.cfpp-panel-open{
@@ -1446,7 +1448,7 @@
 
       if (!opened) {
         icon.classList.remove("cfpp-panel-open");
-
+        icon.blur();
         panel.classList.remove("show");
 
         setTimeout(() => {
