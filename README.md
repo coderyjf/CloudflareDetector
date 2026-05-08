@@ -1,6 +1,6 @@
 # ☁ Cloudflare Detector
 
-一个轻量级 DevTools 风格 Cloudflare 节点检测 Userscript（支持 IP / Colo / 状态灯 / 面板拖动记忆）
+一个轻量级极简风格 Cloudflare 节点检测 Userscript（支持 IP / Colo / 状态灯 / 面板拖动记忆）
 
 ---
 
@@ -34,15 +34,6 @@
 
 ---
 
-### 🪟 DevTools 面板体验
-
-- 可拖动面板（类似 Chrome DevTools Dock）
-- 自动记忆位置（localStorage）
-- 半透明玻璃风格 UI
-- 等宽字体（模拟开发者工具）
-
----
-
 ### 📦 IP & 节点信息
 
 点击 IP 可复制。
@@ -60,7 +51,6 @@
 ---
 
 ### GreasyFork
-发布后可通过以下方式安装：
 
 https://greasyfork.org/
 
@@ -128,12 +118,6 @@ http=h3
 
 ---
 
-## 💡 设计理念
-
-用最少信息模拟 DevTools Network 面板体验。
-
----
-
 ## ⚡ 性能
 
 - 无后台轮询
@@ -143,50 +127,9 @@ http=h3
 
 ---
 
-## 📦 技术栈
-
-- Vanilla JavaScript
-- GM_xmlhttpRequest
-- localStorage / sessionStorage
-- DOM injection
-
----
-
 ## 🔐 隐私
 
 - 不上传任何数据
 - 不包含统计
 - 仅调用 Cloudflare trace
 
----
-
-## 🧪 使用场景
-
-- CDN 调试
-- Cloudflare 排查
-- 网络分析
-- 学习 Edge routing
-
----
-
-## 🛠️ 未来计划
-
-- RTT 延迟检测
-- ASN / ISP 显示
-- CDN 自动识别
-- Dark mode 自动适配
-- 面板吸附边缘
-- Network 可视化增强
-
----
-
-## 📜 License
-
-MIT License
-
----
-
-## 👨‍💻 Author
-
-coderyjf  
-GitHub: https://github.com/coderyjf/CloudflareDetector
